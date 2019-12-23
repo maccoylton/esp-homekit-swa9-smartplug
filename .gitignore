@@ -1,0 +1,4 @@
+esp-homekit-swa9-smartplug.xcodeproj/
+build/
+firmware/
+.DS_Store
