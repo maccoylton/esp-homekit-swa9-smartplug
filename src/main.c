@@ -21,6 +21,8 @@
 #define DEVICE_SERIAL "12345678"
 #define FW_VERSION "1.0"
 
+#define SAVE_DELAY 5000
+
 #include <stdio.h>
 #include <espressif/esp_wifi.h>
 #include <espressif/esp_sta.h>
@@ -89,6 +91,7 @@ void s2_button_callback(uint8_t gpio, void* args, const uint8_t param) {
     relay_write(switch_on.value.bool_value, relay_gpio);
     led_write(switch_on.value.bool_value, LED_GPIO);
     homekit_characteristic_notify(&switch_on, switch_on.value);
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
 }
 
 void gpio_init() {
@@ -142,6 +145,19 @@ homekit_accessory_t *accessories[] = {
     NULL
 };
 
+
+
+void recover_from_reset (int reason) {
+/* called if we restarted abnormally */
+    printf ("%s: reason %d\n", __func__, reason);
+    load_characteristic_from_flash(&switch_on);
+}
+
+void save_characteristics (  ) {
+/* called by a timer function to save charactersitics */
+    printf ("%s:\n", __func__);
+    save_characteristic_to_flash(&switch_on, switch_on.value);
+}
 
 void accessory_init_not_paired (void) {
     /* initalise anything you don't want started until wifi and homekit imitialisation is confirmed, but not paired */
